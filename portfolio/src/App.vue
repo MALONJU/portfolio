@@ -5,6 +5,7 @@ import Projects from './components/Projects.vue'
 import Skills from './components/Skills.vue'
 import Contact from './components/Contact.vue'
 import Resume from './components/Resume.vue'
+import Footer from './components/Footer.vue'
 
 export default {
   name: 'App',
@@ -14,7 +15,8 @@ export default {
     Projects,
     Skills,
     Contact,
-    Resume
+    Resume,
+    Footer
   },
   methods: {
     scrollToSection(sectionId) {
@@ -68,6 +70,8 @@ export default {
       <Skills />
       <Contact />
     </main>
+
+    <Footer />
   </div>
 </template>
 
