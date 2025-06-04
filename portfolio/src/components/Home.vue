@@ -1,16 +1,17 @@
 <template>
-  <div class="home min-vh-100 d-flex align-items-center">
+  <div class="home min-vh-100 d-flex align-items-center" @mousemove="handleMouseMove">
+    <div class="particles-container" ref="particlesContainer"></div>
     <div class="animated-background"></div>
     <div class="container text-center position-relative">
-      <div class="name-container">
+      <div class="name-container" :style="getParallaxStyle(20)">
         <h1 class="glitch-text" data-text="Bibiche Laure">Bibiche Laure</h1>
       </div>
       
-      <div class="typing-container">
+      <div class="typing-container" :style="getParallaxStyle(10)">
         <h2 class="typed-text mb-4"></h2>
       </div>
 
-      <div class="skills-cloud">
+      <div class="skills-cloud" :style="getParallaxStyle(-10)">
         <span class="skill-tag" v-for="(skill, index) in skills" :key="index" 
               :style="{ 
                 animationDelay: `${index * 0.2}s`,
@@ -20,7 +21,7 @@
         </span>
       </div>
 
-      <div class="mt-5 button-container">
+      <div class="mt-5 button-container" :style="getParallaxStyle(5)">
         <a href="#" class="glow-button me-3">
           <span class="button-content">Voir mon CV</span>
           <span class="button-glow"></span>
@@ -29,6 +30,17 @@
           <span class="button-content">En savoir plus</span>
           <span class="button-border"></span>
         </a>
+      </div>
+
+      <div class="scroll-indicator" :style="getParallaxStyle(-5)">
+        <div class="mouse">
+          <div class="wheel"></div>
+        </div>
+        <div class="arrow-scroll">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
       </div>
     </div>
   </div>
@@ -43,7 +55,9 @@ export default {
         'Vue.js', 'React', 'Node.js', 'Spring Boot',
         'JavaScript', 'TypeScript', 'Java', 'Python',
         'DevOps', 'Git', 'Docker', 'AWS'
-      ]
+      ],
+      mouseX: 0,
+      mouseY: 0
     }
   },
   mounted() {
@@ -51,6 +65,15 @@ export default {
     this.initParticles();
   },
   methods: {
+    handleMouseMove(e) {
+      this.mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      this.mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    },
+    getParallaxStyle(intensity) {
+      return {
+        transform: `translate(${this.mouseX * intensity}px, ${this.mouseY * intensity}px)`
+      }
+    },
     initTypeWriter() {
       const text = "Développeuse Web Full Stack";
       const typedTextElement = this.$el.querySelector('.typed-text');
@@ -67,8 +90,68 @@ export default {
       setTimeout(type, 1000);
     },
     initParticles() {
-      // Cette méthode sera utilisée pour initialiser l'animation des particules
-      // si nous décidons d'en ajouter plus tard
+      const canvas = document.createElement('canvas');
+      const container = this.$refs.particlesContainer;
+      container.appendChild(canvas);
+      const ctx = canvas.getContext('2d');
+      
+      const particles = [];
+      const particleCount = 50;
+      
+      function resize() {
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
+      }
+      
+      class Particle {
+        constructor() {
+          this.reset();
+        }
+        
+        reset() {
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 2 + 1;
+          this.speedX = Math.random() * 2 - 1;
+          this.speedY = Math.random() * 2 - 1;
+          this.opacity = Math.random() * 0.5 + 0.2;
+        }
+        
+        update() {
+          this.x += this.speedX;
+          this.y += this.speedY;
+          
+          if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+          if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+        }
+        
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+          ctx.fill();
+        }
+      }
+      
+      function init() {
+        resize();
+        for (let i = 0; i < particleCount; i++) {
+          particles.push(new Particle());
+        }
+      }
+      
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(particle => {
+          particle.update();
+          particle.draw();
+        });
+        requestAnimationFrame(animate);
+      }
+      
+      window.addEventListener('resize', resize);
+      init();
+      animate();
     }
   }
 }
@@ -78,7 +161,16 @@ export default {
 .home {
   position: relative;
   overflow: hidden;
-  background: var(--background-gradient);
+  background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+}
+
+.particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
 .animated-background {
@@ -87,21 +179,26 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(125deg, #1a2a6c, #b21f1f, #fdbb2d);
+  background: linear-gradient(125deg, #1a1a1a, #2d2d2d, #1a1a1a);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
   opacity: 0.8;
 }
 
+.container {
+  z-index: 2;
+}
+
 .name-container {
   margin-bottom: 2rem;
+  transition: transform 0.1s ease-out;
 }
 
 .glitch-text {
   font-size: 4.5rem;
   font-weight: bold;
   color: white;
-  text-shadow: 2px 2px var(--accent-color);
+  text-shadow: 2px 2px rgba(255, 255, 255, 0.2);
   position: relative;
   animation: glitch 5s infinite;
 }
@@ -276,5 +373,83 @@ export default {
   0% { transform: scale(1); opacity: 0.5; }
   50% { transform: scale(1.05); opacity: 0.8; }
   100% { transform: scale(1); opacity: 0.5; }
+}
+
+.scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.mouse {
+  width: 26px;
+  height: 42px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 13px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.wheel {
+  width: 4px;
+  height: 8px;
+  background: white;
+  border-radius: 2px;
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: scroll 1.5s infinite;
+}
+
+.arrow-scroll {
+  padding-top: 10px;
+}
+
+.arrow-scroll span {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+  border-right: 2px solid rgba(255, 255, 255, 0.8);
+  transform: rotate(45deg);
+  margin: -5px auto;
+  animation: arrow 2s infinite;
+}
+
+.arrow-scroll span:nth-child(2) {
+  animation-delay: -0.2s;
+}
+
+.arrow-scroll span:nth-child(3) {
+  animation-delay: -0.4s;
+}
+
+@keyframes scroll {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+}
+
+@keyframes arrow {
+  0% {
+    opacity: 0;
+    transform: rotate(45deg) translate(-20px, -20px);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(45deg) translate(20px, 20px);
+  }
 }
 </style> 
